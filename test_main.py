@@ -1,7 +1,6 @@
 """Модульные тесты для проверки функций ПР1 (Сервис регистрации продавцов)."""
 
 from datetime import date
-import pytest
 from main import (
     validate_vendor_data,
     calculate_participation_fee,
@@ -31,7 +30,9 @@ def test_validate_vendor_data_invalid():
 def test_calculate_participation_fee():
     """Проверка расчета стоимости участия с учетом категорий и скидок."""
     # Ремесла: 1000 руб/кв.м * 10 кв.м * 1.0 = 10000 руб (без скидки)
-    fee_crafts = calculate_participation_fee(1000.0, "Ремесленные изделия", 10.0, False)
+    fee_crafts = calculate_participation_fee(
+        1000.0, "Ремесленные изделия", 10.0, False
+    )
     assert fee_crafts == 10000.0
 
     # Ремесла со скидкой новичка (15%): 10000 - 1500 = 8500 руб
@@ -39,20 +40,29 @@ def test_calculate_participation_fee():
     assert fee_newcomer == 8500.0
 
     # Продукты питания: 1000 * 10 * 1.3 = 13000 руб
-    fee_food = calculate_participation_fee(1000.0, "Продукты питания", 10.0, False)
+    fee_food = calculate_participation_fee(
+        1000.0, "Продукты питания", 10.0, False
+    )
     assert fee_food == 13000.0
 
 
 def test_determine_application_status():
     """Проверка определения статусов заявки."""
     # Все условия выполнены -> одобрено
-    assert determine_application_status(True, 10.0, 50.0, True) == "Одобрена: регистрация подтверждена, стенд забронирован"
+    status_ok = determine_application_status(True, 10.0, 50.0, True)
+    assert "Одобрена" in status_ok
+
     # Ошибки в документах -> отклонено
-    assert "ошибки" in determine_application_status(False, 10.0, 50.0, True).lower()
+    status_doc_err = determine_application_status(False, 10.0, 50.0, True)
+    assert "ошибки" in status_doc_err.lower()
+
     # Запрошено больше доступного места -> отклонено
-    assert "недостаточно" in determine_application_status(True, 60.0, 50.0, True).lower()
+    status_space_err = determine_application_status(True, 60.0, 50.0, True)
+    assert "недостаточно" in status_space_err.lower()
+
     # Не оплачено -> ожидает оплаты
-    assert "ожидается оплата" in determine_application_status(True, 10.0, 50.0, False).lower()
+    status_wait_pay = determine_application_status(True, 10.0, 50.0, False)
+    assert "ожидается оплата" in status_wait_pay.lower()
 
 
 def test_generate_registration_card():

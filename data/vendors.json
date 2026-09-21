@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Мастерская керамики «Глиняная сказка»",
+    "inn": "770198765432",
+    "category": "Ремесленные изделия",
+    "has_documents": true,
+    "experience_years": 3
+  },
+  {
+    "id": 2,
+    "name": "Пасека «Медовый край»",
+    "inn": "770212345678",
+    "category": "Продукты питания",
+    "has_documents": true,
+    "experience_years": 5
+  },
+  {
+    "id": 3,
+    "name": "Артель резчиков «Русский узор»",
+    "inn": "770399887766",
+    "category": "Ремесла",
+    "has_documents": true,
+    "experience_years": 8
+  },
+  {
+    "id": 4,
+    "name": "Сувенирная лавка «Матрешка»",
+    "inn": "770455443322",
+    "category": "Сувениры",
+    "has_documents": true,
+    "experience_years": 1
+  }
+]

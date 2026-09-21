@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "fair_id": 1,
+    "vendor_id": 1,
+    "requested_space": 12.0,
+    "is_first_time": true,
+    "fee": 15300.0,
+    "status": "Одобрена: регистрация подтверждена, стенд забронирован",
+    "is_paid": true
+  },
+  {
+    "id": 2,
+    "fair_id": 1,
+    "vendor_id": 2,
+    "requested_space": 20.0,
+    "is_first_time": false,
+    "fee": 39000.0,
+    "status": "Одобрена: регистрация подтверждена, стенд забронирован",
+    "is_paid": true
+  },
+  {
+    "id": 3,
+    "fair_id": 2,
+    "vendor_id": 3,
+    "requested_space": 15.0,
+    "is_first_time": false,
+    "fee": 27000.0,
+    "status": "На рассмотрении: ожидается оплата регистрационного сбора",
+    "is_paid": false
+  }
+]
