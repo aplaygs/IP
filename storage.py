@@ -1,13 +1,17 @@
 """Модуль работы с постоянным хранилищем данных в формате JSON.
 
-Обеспечивает загрузку и сохранение списков ярмарок, продавцов и заявок
-с использованием контекстных менеджеров и надежной обработкой исключений.
+Обеспечивает загрузку и сохранение объектов Fair, Vendor и Application
+с использованием контекстных менеджеров with open, обработкой исключений
+и преобразованием между JSON-структурами и объектами моделей.
 """
 
 import json
 import os
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
+from models.applications import Application
+from models.fairs import Fair, find_fair_by_id
+from models.vendors import Vendor, find_vendor_by_id
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 FAIRS_FILE = os.path.join(DATA_DIR, "fairs.json")
@@ -32,8 +36,10 @@ def load_json_file(filepath: str, default: Union[list, dict]) -> Any:
         with open(filepath, "r", encoding="utf-8") as file:
             return json.load(file)
     except (json.JSONDecodeError, OSError) as error:
-        print(f"[Предупреждение]: ошибка при чтении {filepath}: {error}. "
-              f"Использованы данные по умолчанию.")
+        print(
+            f"[Предупреждение]: ошибка при чтении {filepath}: {error}. "
+            f"Использованы данные по умолчанию."
+        )
         return default
 
 
@@ -57,31 +63,115 @@ def save_json_file(filepath: str, data: Any) -> bool:
         return False
 
 
-def load_fairs() -> List[dict]:
-    """Загружает список ярмарок из файла fairs.json."""
-    return load_json_file(FAIRS_FILE, default=[])
+# Алиасы для обратной совместимости
+safe_load_json = load_json_file
+safe_save_json = save_json_file
 
 
-def save_fairs(fairs: List[dict]) -> bool:
-    """Сохраняет список ярмарок в файл fairs.json."""
-    return save_json_file(FAIRS_FILE, fairs)
+def load_fairs() -> List[Fair]:
+    """Загружает ярмарки из fairs.json и преобразует их в объекты Fair."""
+    raw_data = load_json_file(FAIRS_FILE, default=[])
+    fairs: List[Fair] = []
+    for item in raw_data:
+        try:
+            fairs.append(Fair.from_dict(item))
+        except (KeyError, ValueError) as err:
+            print(f"[Предупреждение]: пропуск поврежденной ярмарки: {err}")
+    return fairs
 
 
-def load_vendors() -> List[dict]:
-    """Загружает список продавцов из файла vendors.json."""
-    return load_json_file(VENDORS_FILE, default=[])
+def save_fairs(fairs: List[Any]) -> bool:
+    """Сохраняет список объектов Fair в файл fairs.json."""
+    serialized = [
+        item.to_dict() if hasattr(item, "to_dict") else item
+        for item in fairs
+    ]
+    return save_json_file(FAIRS_FILE, serialized)
 
 
-def save_vendors(vendors: List[dict]) -> bool:
-    """Сохраняет список продавцов в файл vendors.json."""
-    return save_json_file(VENDORS_FILE, vendors)
+def load_vendors() -> List[Vendor]:
+    """Загружает продавцов из vendors.json и преобразует в объекты Vendor."""
+    raw_data = load_json_file(VENDORS_FILE, default=[])
+    vendors: List[Vendor] = []
+    for item in raw_data:
+        try:
+            vendors.append(Vendor.from_dict(item))
+        except (KeyError, ValueError) as err:
+            print(f"[Предупреждение]: пропуск некорректного продавца: {err}")
+    return vendors
 
 
-def load_applications() -> List[dict]:
-    """Загружает список заявок из файла applications.json."""
-    return load_json_file(APPLICATIONS_FILE, default=[])
+def save_vendors(vendors: List[Any]) -> bool:
+    """Сохраняет список объектов Vendor в файл vendors.json."""
+    serialized = [
+        item.to_dict() if hasattr(item, "to_dict") else item
+        for item in vendors
+    ]
+    return save_json_file(VENDORS_FILE, serialized)
 
 
-def save_applications(applications: List[dict]) -> bool:
-    """Сохраняет список заявок в файл applications.json."""
-    return save_json_file(APPLICATIONS_FILE, applications)
+def load_applications(
+    vendors: Optional[List[Vendor]] = None,
+    fairs: Optional[List[Fair]] = None,
+) -> List[Application]:
+    """Загружает заявки из applications.json и связывает их с объектами.
+
+    Параметры:
+        vendors: список объектов продавцов (если None, загружаются из файла).
+        fairs: список объектов ярмарок (если None, загружаются из файла).
+
+    Возвращает:
+        Список объектов Application со ссылками на объекты Vendor и Fair.
+    """
+    if vendors is None:
+        vendors = load_vendors()
+    if fairs is None:
+        fairs = load_fairs()
+
+    raw_data = load_json_file(APPLICATIONS_FILE, default=[])
+    applications: List[Application] = []
+
+    for item in raw_data:
+        v_id = item.get("vendor_id")
+        f_id = item.get("fair_id")
+
+        vendor_obj = find_vendor_by_id(vendors, v_id) if v_id else None
+        fair_obj = find_fair_by_id(fairs, f_id) if f_id else None
+
+        if not vendor_obj:
+            vendor_obj = Vendor(
+                vendor_id=v_id or 1,
+                name=f"Продавец #{v_id}",
+                inn="7700000000",
+                category="Общая",
+                has_documents=True,
+            )
+
+        if not fair_obj:
+            fair_obj = Fair(
+                fair_id=f_id or 1,
+                name=f"Ярмарка #{f_id}",
+                location="Городская площадь",
+                date="2026-10-01",
+                base_rate=1500.0,
+                total_space=100.0,
+            )
+
+        try:
+            app_obj = Application.from_dict(
+                item, vendor=vendor_obj, fair=fair_obj
+            )
+            applications.append(app_obj)
+        except (KeyError, ValueError) as err:
+            print(f"[Предупреждение]: пропуск поврежденной заявки: {err}")
+
+    return applications
+
+
+def save_applications(applications: List[Any]) -> bool:
+    """Сохраняет список объектов Application в файл applications.json."""
+    serialized = [
+        item.to_dict() if hasattr(item, "to_dict") else item
+        for item in applications
+    ]
+    return save_json_file(APPLICATIONS_FILE, serialized)

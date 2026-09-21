@@ -6,4 +6,5 @@ exclude =
     .venv,
     .pytest_cache,
     generate_report.py,
-    generate_report_pr2.py
+    generate_report_pr2.py,
+    generate_report_pr3.py
