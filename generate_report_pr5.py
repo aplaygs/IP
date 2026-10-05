@@ -6,10 +6,8 @@
 Тема 433: Сервис регистрации продавцов на ярмарку (FairVendor)
 """
 
-import base64
-import io
 import os
-import fitz  # PyMuPDF
+import pymupdf
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
 from reportlab.lib.pagesizes import A4
@@ -29,7 +27,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from generate_report import MIREA_LOGO_B64
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "mirea_logo.jpg")
 
 
 class GostNumberedCanvas(canvas.Canvas):
@@ -229,11 +227,11 @@ def create_gost_report_pr5(output_pdf_path: str):
     # =========================================================================
     # СТРАНИЦА 1: ТИТУЛЬНЫЙ ЛИСТ (С ГЕРБОМ РТУ МИРЭА)
     # =========================================================================
-    logo_bytes = base64.b64decode(MIREA_LOGO_B64)
-    logo_img = Image(io.BytesIO(logo_bytes), width=24 * mm, height=27.2 * mm)
-    logo_img.hAlign = "CENTER"
-    story.append(logo_img)
-    story.append(Spacer(1, 2.5 * mm))
+    if os.path.exists(LOGO_PATH):
+        logo_img = Image(LOGO_PATH, width=24 * mm, height=27.2 * mm)
+        logo_img.hAlign = "CENTER"
+        story.append(logo_img)
+        story.append(Spacer(1, 2.5 * mm))
 
     story.append(Paragraph("МИНОБРНАУКИ РОССИИ", style_univ))
     story.append(
@@ -607,14 +605,9 @@ def create_gost_report_pr5(output_pdf_path: str):
 
 def verify_pdf_pages(pdf_path: str):
     """Проверяет точное количество страниц в сгенерированном PDF-документе."""
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     page_count = len(doc)
     print(f"Проверка PDF: файл '{pdf_path}' содержит {page_count} страниц.")
-    for idx, page in enumerate(doc):
-        pix = page.get_pixmap(dpi=150)
-        img_name = f"gost_pr5_page_{idx + 1}.png"
-        pix.save(img_name)
-        print(f"  Страница {idx + 1} сохранена как '{img_name}'.")
     return page_count
 
 
