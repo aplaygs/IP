@@ -612,7 +612,10 @@ def verify_pdf_pages(pdf_path: str):
 
 
 if __name__ == "__main__":
-    pdf_filename = "Отчет_Практическая_работа_5_Мишуков_В_Р.pdf"
+    pdf_filename = os.path.join(
+        os.path.dirname(__file__),
+        "Отчет_Практическая_работа_5_Мишуков_В_Р.pdf",
+    )
     create_gost_report_pr5(pdf_filename)
     pages = verify_pdf_pages(pdf_filename)
     if pages != 3:

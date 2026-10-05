@@ -5,6 +5,6 @@ exclude =
     __pycache__,
     .venv,
     .pytest_cache,
-    generate_report_pr5.py,
+    reports/*,
     */migrations/*
 
