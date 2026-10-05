@@ -70,3 +70,8 @@ venv.bak/
 *.swp
 *.swo
 *~
+
+# Django
+*.sqlite3
+db.sqlite3
+

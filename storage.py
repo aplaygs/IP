@@ -68,9 +68,10 @@ safe_load_json = load_json_file
 safe_save_json = save_json_file
 
 
-def load_fairs() -> List[Fair]:
+def load_fairs(filepath: Optional[str] = None) -> List[Fair]:
     """Загружает ярмарки из fairs.json и преобразует их в объекты Fair."""
-    raw_data = load_json_file(FAIRS_FILE, default=[])
+    target_path = filepath if filepath else FAIRS_FILE
+    raw_data = load_json_file(target_path, default=[])
     fairs: List[Fair] = []
     for item in raw_data:
         try:
@@ -80,18 +81,20 @@ def load_fairs() -> List[Fair]:
     return fairs
 
 
-def save_fairs(fairs: List[Any]) -> bool:
+def save_fairs(fairs: List[Any], filepath: Optional[str] = None) -> bool:
     """Сохраняет список объектов Fair в файл fairs.json."""
+    target_path = filepath if filepath else FAIRS_FILE
     serialized = [
         item.to_dict() if hasattr(item, "to_dict") else item
         for item in fairs
     ]
-    return save_json_file(FAIRS_FILE, serialized)
+    return save_json_file(target_path, serialized)
 
 
-def load_vendors() -> List[Vendor]:
+def load_vendors(filepath: Optional[str] = None) -> List[Vendor]:
     """Загружает продавцов из vendors.json и преобразует в объекты Vendor."""
-    raw_data = load_json_file(VENDORS_FILE, default=[])
+    target_path = filepath if filepath else VENDORS_FILE
+    raw_data = load_json_file(target_path, default=[])
     vendors: List[Vendor] = []
     for item in raw_data:
         try:
@@ -101,34 +104,44 @@ def load_vendors() -> List[Vendor]:
     return vendors
 
 
-def save_vendors(vendors: List[Any]) -> bool:
+def save_vendors(vendors: List[Any], filepath: Optional[str] = None) -> bool:
     """Сохраняет список объектов Vendor в файл vendors.json."""
+    target_path = filepath if filepath else VENDORS_FILE
     serialized = [
         item.to_dict() if hasattr(item, "to_dict") else item
         for item in vendors
     ]
-    return save_json_file(VENDORS_FILE, serialized)
+    return save_json_file(target_path, serialized)
 
 
 def load_applications(
-    vendors: Optional[List[Vendor]] = None,
-    fairs: Optional[List[Fair]] = None,
+    arg1: Any = None,
+    arg2: Any = None,
+    arg3: Any = None,
 ) -> List[Application]:
     """Загружает заявки из applications.json и связывает их с объектами.
 
-    Параметры:
-        vendors: список объектов продавцов (если None, загружаются из файла).
-        fairs: список объектов ярмарок (если None, загружаются из файла).
-
-    Возвращает:
-        Список объектов Application со ссылками на объекты Vendor и Fair.
+    Поддерживает вызовы:
+    - load_applications()
+    - load_applications(vendors, fairs)
+    - load_applications("data/applications.json", fairs, vendors)
     """
+    if isinstance(arg1, str):
+        target_path = arg1
+        fairs = arg2
+        vendors = arg3
+    else:
+        target_path = APPLICATIONS_FILE
+        vendors = arg1
+        fairs = arg2
+
     if vendors is None:
         vendors = load_vendors()
     if fairs is None:
         fairs = load_fairs()
 
-    raw_data = load_json_file(APPLICATIONS_FILE, default=[])
+    raw_data = load_json_file(target_path, default=[])
+
     applications: List[Application] = []
 
     for item in raw_data:
