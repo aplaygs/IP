@@ -6,7 +6,7 @@
 """
 
 from datetime import date, datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from models.fairs import Fair
 from models.vendors import Vendor
 
@@ -441,3 +441,19 @@ def generate_registration_card(
         f"Текущий статус заявки:  {status}\n"
         f"{card_border}\n"
     )
+
+
+def find_application_by_id(
+    applications: List[Any],
+    application_id: int,
+) -> Optional[Any]:
+    """Найти заявку по уникальному идентификатору."""
+    for application in applications:
+        app_id = (
+            application.id
+            if hasattr(application, "id")
+            else application.get("id")
+        )
+        if app_id == application_id:
+            return application
+    return None

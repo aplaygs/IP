@@ -1,7 +1,7 @@
 """Автоматические тесты для модуля vendors (управление продавцами)."""
 
 import pytest
-from vendors import (
+from models.vendors import (
     add_vendor,
     filter_vendors_by_category,
     find_vendor_by_name,

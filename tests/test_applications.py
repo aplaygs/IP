@@ -1,7 +1,7 @@
 """Автоматические тесты для модуля applications (управление заявками)."""
 
 import pytest
-from applications import (
+from models.applications import (
     calculate_fair_statistics,
     calculate_participation_fee,
     cancel_application,
